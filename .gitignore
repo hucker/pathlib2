@@ -1,0 +1,50 @@
+# Ruff
+.ruff_cache/
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# VS Code
+.vscode/
+
+# Test and coverage
+htmlcov/
+.coverage
+.tox/
+.nox/
+.cache/
+.pytest_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.venv
+venv/
+ENV/
+
+# Logs
+*.log
+
+# Misc
+*.bak
+*.swp
+*.tmp
+
+# MyPy
+.mypy_cache/
+
+test/__pycache__/

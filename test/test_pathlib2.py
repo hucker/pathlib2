@@ -1,10 +1,36 @@
 
-
 import os
 import shutil
 import tempfile
 import pytest
-from src.pdir.pdirpath import PDirPath
+from pathlib2.pathlib2 import Path2
+
+@pytest.mark.parametrize(
+    "filenames,pattern,expected",
+    [
+        # No matches
+        (["a.tif", "b.tif"], "*.{pdf,doc}", []),
+        # Files with no extension
+        (["foo", "bar.tif"], "*.{tif,jpg}", ["bar.tif"]),
+        # Hidden files
+        ([".hidden.tif", "visible.tif"], "*.{tif}", [".hidden.tif", "visible.tif"]),
+        # Multiple dots
+        (["foo.bar.tif", "baz.tif"], "*.{tif}", ["foo.bar.tif", "baz.tif"]),
+        # Trailing comma
+        (["a.tif", "b.jpg"], "*.{tif,}", ["a.tif"]),
+        # Single extension in braces
+        (["a.tif", "b.jpg"], "*.{tif}", ["a.tif"]),
+    ]
+)
+def test_edge_cases_multi_extension(tmp_path, filenames, pattern, expected):
+    # Create files
+    for fname in filenames:
+        (tmp_path / fname).touch()
+    p = Path2(tmp_path)
+    found = sorted([f.name for f in p.glob(pattern)])
+    assert found == sorted(expected)
+
+ 
 @pytest.fixture
 def temp_dir_with_files():
     temp_dir = tempfile.mkdtemp()
@@ -17,7 +43,7 @@ def temp_dir_with_files():
     shutil.rmtree(temp_dir)
 
 def test_glob_normal_pattern(temp_dir_with_files):
-    p = PDirPath(temp_dir_with_files)
+    p = Path2(temp_dir_with_files)
     tif_files = sorted([f.name for f in p.glob('*.tif')])
     assert tif_files == ['a.tif', 'b.tif', 'f.tif']
 
@@ -34,13 +60,13 @@ def test_glob_normal_pattern(temp_dir_with_files):
     ]
 )
 def test_glob_multi_extension_pattern(temp_dir_with_files, pattern, expected):
-    p = PDirPath(temp_dir_with_files)
+    p = Path2(temp_dir_with_files)
     files = sorted([f.name for f in p.glob(pattern)])
     assert files == sorted(expected)
 
 def test_rglob_multi_extension_pattern(temp_dir_with_files):
     # Create subdir and add files
-    p = PDirPath(temp_dir_with_files)
+    p = Path2(temp_dir_with_files)
     subdir = p / 'sub'
     subdir.mkdir()
     (subdir / 'x.tif').touch()
