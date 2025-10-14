@@ -13,7 +13,7 @@ Matching files with multiple extensions is a frequent requirement in many domain
 Currently, users often implement this by iterating over a list of extensions and calling glob multiple times, or by writing double-nested loops. This is inefficient, as it requires scanning the directory tree multiple times, and leads to verbose, error-prone code.
 
 ## Rationale
-By encapsulating multi-extension globbing in the `pathlib2.Path2` API, this package provides a single, efficient directory scan and a concise, readable interface. This approach is more natural for users who are already working with modern path objects, and keeps the implementation footprint small and focused. It also aligns with patterns found in Unix shells and other scripting environments.
+By encapsulating multi-extension globbing in the `pathlib2.Path2` API, this package provides a single, efficient directory scan and a concise, readable interface. This approach is more natural for users who are already working with modern path objects, and keeps the implementation footprint small and focused. It also aligns with patterns found in Unix shells and other scripting environments.  
 
 ## Specification (Prototype)
 This package provides `pathlib2.Path2` with support for multi-extension patterns:

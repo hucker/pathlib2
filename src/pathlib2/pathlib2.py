@@ -12,6 +12,9 @@ class Path2(pathlib.Path):
     Supports patterns like '*.tif' (standard) and '*.{tif,jpg}' (multiple extensions).
     Numeric pattern support is not included; this class focuses on globbing and multi-extension patterns only.
     """
+
+
+    
     # The _flavour attribute is a private implementation detail of pathlib.Path.
     # It determines the path flavor (Windows or Posix) and is required for correct
     # subclassing of pathlib.Path. Without this, many methods will not work as expected

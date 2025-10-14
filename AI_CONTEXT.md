@@ -20,7 +20,7 @@ When generating or editing code for this project, always adhere to the following
 
 ### 4. General Style
 - All public and private functions/methods must have a docstring, even if brief.
-- Follow PEP 8 for code formatting, except where overridden by these rules.
+- Use ruff for formatting with autofix.
 - Use descriptive parameter and variable names.
 
 ### 5. Example Function Template
