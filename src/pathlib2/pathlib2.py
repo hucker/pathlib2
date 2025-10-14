@@ -12,15 +12,18 @@ class Path2(pathlib.Path):
     Supports patterns like '*.tif' (standard) and '*.{tif,jpg}' (multiple extensions).
     Numeric pattern support is not included; this class focuses on globbing and multi-extension patterns only.
     """
-    _flavour = type(pathlib.Path())._flavour  # type: ignore[attr-defined]  # Required for pathlib subclassing
+    # The _flavour attribute is a private implementation detail of pathlib.Path.
+    # It determines the path flavor (Windows or Posix) and is required for correct
+    # subclassing of pathlib.Path. Without this, many methods will not work as expected
+    # on custom Path subclasses. This assignment ensures Path2 behaves identically to
+    # the standard library's Path on all platforms.
+    _flavour = type(pathlib.Path())._flavour  # type: ignore[attr-defined]
 
 
 
     def glob(
         self,
-        pattern: str,
-        *,
-        case_sensitive: bool | None = None
+        pattern: str
     ) -> Generator["Path2", None, None]:
         """
         Yield files matching the given pattern, supporting multi-extension patterns.
@@ -29,7 +32,7 @@ class Path2(pathlib.Path):
             pattern (str): Glob pattern. Supports brace-enclosed, comma-separated extensions (e.g., '*.{tif,jpg}').
 
         Yields:
-            pathlib.Path: Paths matching the pattern.
+            pathlib2.Path2: Paths matching the pattern.
 
         Example:
             for f in Path2("/some/dir").glob("*.{tif,jpg}"):
@@ -41,9 +44,7 @@ class Path2(pathlib.Path):
 
     def rglob(
         self,
-        pattern: str,
-        *,
-        case_sensitive: bool | None = None
+        pattern: str
     ) -> Generator["Path2", None, None]:
         """
         Recursively yield files matching the given pattern, supporting multi-extension patterns.
@@ -52,7 +53,7 @@ class Path2(pathlib.Path):
             pattern (str): Glob pattern. Supports brace-enclosed, comma-separated extensions (e.g., '*.{tif,jpg}').
 
         Yields:
-            pathlib.Path: Paths matching the pattern recursively.
+            pathlib2.Path2: Paths matching the pattern recursively.
 
         Example:
             for f in Path2("/some/dir").rglob("*.{tif,jpg}"):
@@ -69,7 +70,7 @@ class Path2(pathlib.Path):
             recursive (bool): Whether to search recursively (rglob) or not (glob).
 
         Yields:
-            pathlib.Path: Paths matching the pattern.
+            pathlib2.Path2: Paths matching the pattern.
         """
         dot_idx = pattern.rfind('.')
         if dot_idx == -1:
