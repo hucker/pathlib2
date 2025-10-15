@@ -10,6 +10,7 @@ When generating or editing code for this project, always adhere to the following
 - Every function and method must include a docstring.
 - Use **Google-style docstrings** for all functions, methods, and classes.
 - Docstrings should clearly describe the purpose, parameters, return values, exceptions, and any side effects.
+- In test files there should at least be 1 line docstrings explaining the method.  More lines are OK if needed.
 
 ### 2. Type Hinting
 
@@ -62,7 +63,7 @@ def example_function(arg1: int, arg2: str | None = None) -> bool:
 - If a function or method is missing a docstring, add one in Google style.
 - If type hints are missing or not using 3.10+ syntax, update them.
 - Always use `import datetime as dt` for any datetime usage.
-
+- Always run ruff on code you generate
 ---
 This file is intended for use as AI prompt context to enforce coding standards and style for this project.
 

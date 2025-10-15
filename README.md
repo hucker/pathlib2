@@ -1,43 +1,30 @@
-## Examples
+## Case Sensitivity Options
 
-Here are some example use cases for multi-extension globbing:
+The glob and rglob methods now support a `match_case` parameter to control case sensitivity:
 
-### 1. Data Science: Find all spreadsheet files
+- `MatchCase.SENSITIVE` (default): Case-sensitive matching for the entire filename and extension.
+- `MatchCase.IGNORE`: Case-insensitive matching for the entire filename and extension.
+- `MatchCase.IGNORE_EXTENSION`: Case-sensitive for the filename, case-insensitive for the extension only.
+
+**Examples:**
 
 ```python
-# Using the demonstration subclass
-from pathlib2.pathlib2 import Path2
-for f in Path2('.').glob('*.{csv,xls,xlsx}'):
+from pathlib2.pathlib2 import Path2, MatchCase
+
+# Case-sensitive (default)
+for f in Path2('.').glob('*.{csv,xls}', match_case=MatchCase.SENSITIVE):
     print(f)
 
-# Intended standard library usage
-from pathlib import Path
-for f in Path('.').glob('*.{csv,xls,xlsx}'):
+# Case-insensitive (entire filename)
+for f in Path2('.').glob('*.{csv,xls}', match_case=MatchCase.IGNORE):
+    print(f)
+
+# Case-insensitive (extension only)
+for f in Path2('.').glob('*.{csv,xls}', match_case=MatchCase.IGNORE_EXTENSION):
     print(f)
 ```
 
-### 2. Programming: Find all C/C++ source and header files
-
-```python
-for f in Path2('.').glob('*.{c,cpp,h}'):
-    print(f)
-```
-
-### 3. System Operations: Find all archive files
-
-```python
-for f in Path2('.').glob('*.{zip,tar,gz}'):
-    print(f)
-```
-
-### 4. Case-insensitive extension matching (future enhancement)
-
-```python
-# Intended: match .jpg, .JPG, .Jpg, etc.
-for f in Path2('.').glob('*.{jpg,png}'):
-    print(f)
-# (Case-insensitive matching is not yet implemented in the prototype.)
-```
+See `test/test_case_sensitivity.py` for parameterized test cases covering all modes.
 p = Path2('.')
 
 

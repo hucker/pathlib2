@@ -1,9 +1,15 @@
 
+from enum import Enum, auto
 import pathlib
+import sys
 from typing import Generator
 from fnmatch import fnmatch
 
-
+# Enum for case sensitivity options
+class MatchCase(Enum):
+    SENSITIVE = auto()
+    IGNORE = auto()
+    IGNORE_EXTENSION = auto()
 
 class Path2(pathlib.Path):
     """
@@ -13,86 +19,93 @@ class Path2(pathlib.Path):
     Numeric pattern support is not included; this class focuses on globbing and multi-extension patterns only.
     """
 
-
-    
-    # The _flavour attribute is a private implementation detail of pathlib.Path.
-    # It determines the path flavor (Windows or Posix) and is required for correct
-    # subclassing of pathlib.Path. Without this, many methods will not work as expected
-    # on custom Path subclasses. This assignment ensures Path2 behaves identically to
-    # the standard library's Path on all platforms.
-    _flavour = type(pathlib.Path())._flavour  # type: ignore[attr-defined]
-
-
+    # Only set _flavour for Python < 3.13
+    if sys.version_info < (3, 13):
+        _flavour = type(pathlib.Path())._flavour  # type: ignore[attr-defined]
 
     def glob(
         self,
-        pattern: str
+        pattern: str,
+        match_case: "MatchCase" = MatchCase.SENSITIVE
     ) -> Generator["Path2", None, None]:
         """
-        Yield files matching the given pattern, supporting multi-extension patterns.
+        Yield files matching the given pattern, supporting multi-extension patterns and case sensitivity options.
 
         Args:
             pattern (str): Glob pattern. Supports brace-enclosed, comma-separated extensions (e.g., '*.{tif,jpg}').
+            match_case (MatchCase): Case sensitivity mode (default: SENSITIVE).
 
         Yields:
             pathlib2.Path2: Paths matching the pattern.
 
         Example:
-            for f in Path2("/some/dir").glob("*.{tif,jpg}"):
+            for f in Path2("/some/dir").glob("*.{tif,jpg}", match_case=MatchCase.IGNORE_EXTENSION):
                 print(f)
         """
-        return self._custom_glob(pattern, recursive=False)
+        return self._custom_glob(pattern, recursive=False, match_case=match_case)
 
 
 
     def rglob(
         self,
-        pattern: str
+        pattern: str,
+        match_case: "MatchCase" = MatchCase.SENSITIVE
     ) -> Generator["Path2", None, None]:
         """
-        Recursively yield files matching the given pattern, supporting multi-extension patterns.
+        Recursively yield files matching the given pattern, supporting multi-extension patterns and case sensitivity options.
 
         Args:
             pattern (str): Glob pattern. Supports brace-enclosed, comma-separated extensions (e.g., '*.{tif,jpg}').
+            match_case (MatchCase): Case sensitivity mode (default: SENSITIVE).
 
         Yields:
             pathlib2.Path2: Paths matching the pattern recursively.
 
         Example:
-            for f in Path2("/some/dir").rglob("*.{tif,jpg}"):
+            for f in Path2("/some/dir").rglob("*.{tif,jpg}", match_case=MatchCase.IGNORE_EXTENSION):
                 print(f)
         """
-        return self._custom_glob(pattern, recursive=True)
+        return self._custom_glob(pattern, recursive=True, match_case=match_case)
 
-    def _custom_glob(self, pattern: str, recursive: bool) -> Generator["Path2", None, None]:
+    def _custom_glob(self, pattern: str, recursive: bool, match_case: "MatchCase") -> Generator["Path2", None, None]:
         """
-        Internal helper for glob and rglob supporting multi-extension patterns.
-
-        Args:
-            pattern (str): Glob pattern, possibly with brace-enclosed extensions.
-            recursive (bool): Whether to search recursively (rglob) or not (glob).
-
-        Yields:
-            pathlib2.Path2: Paths matching the pattern.
+        Internal helper for glob and rglob supporting multi-extension patterns and case sensitivity.
         """
         dot_idx = pattern.rfind('.')
         if dot_idx == -1:
-            # No extension, fallback to normal glob
             yield from (super().glob(pattern) if not recursive else super().rglob(pattern))
             return
         ext_part = pattern[dot_idx+1:]
         if ext_part.startswith('{') and ext_part.endswith('}'):
             exts = set(ext_part[1:-1].split(','))
-            # Replace the extension in the pattern with .*
-            base_pattern = pattern[:dot_idx] + ".*"
+            pattern_fname = pattern[:dot_idx]
             search_pattern = '**/*' if recursive else '*'
             for p in super().rglob(search_pattern) if recursive else super().glob(search_pattern):
-                # Match the base pattern (with .*):
-                if not fnmatch(p.name, base_pattern):
+                name = p.name
+                if '.' not in name:
                     continue
-                # Check extension after last dot
-                file_ext = p.name.rsplit('.', 1)[-1]
-                if file_ext in exts:
-                    yield p
+                fname, ext = name.rsplit('.', 1)
+                if match_case == MatchCase.IGNORE:
+                    # Fully case-insensitive: match filename and extension both case-insensitively
+                    if not fnmatch(fname.lower(), pattern_fname.lower()):
+                        continue
+                    if ext.lower() in {e.lower() for e in exts}:
+                        yield p
+                elif match_case == MatchCase.IGNORE_EXTENSION:
+                    # Extension-insensitive: filename part case-sensitive, extension case-insensitive
+                    # If pattern_fname is '*', match all filenames
+                    if pattern_fname == '*':
+                        fname_match = True
+                    else:
+                        fname_match = fnmatch(fname, pattern_fname)
+                    if not fname_match:
+                        continue
+                    if ext.lower() in {e.lower() for e in exts}:
+                        yield p
+                else:  # SENSITIVE
+                    if not fnmatch(fname, pattern_fname):
+                        continue
+                    if ext in exts:
+                        yield p
         else:
             yield from (super().glob(pattern) if not recursive else super().rglob(pattern))
