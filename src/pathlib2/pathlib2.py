@@ -26,54 +26,70 @@ class Path2(pathlib.Path):
     def glob(
         self,
         pattern: str,
-        match_case: "MatchCase" = MatchCase.SENSITIVE
+        match_case: "MatchCase" = MatchCase.SENSITIVE,
+        include_files: bool = True,
+        include_dirs: bool = True
     ) -> Generator["Path2", None, None]:
         """
-        Yield files matching the given pattern, supporting multi-extension patterns and case sensitivity options.
+        Yield files and/or directories matching the given pattern, supporting multi-extension patterns and case sensitivity options.
 
         Args:
             pattern (str): Glob pattern. Supports brace-enclosed, comma-separated extensions (e.g., '*.{tif,jpg}').
             match_case (MatchCase): Case sensitivity mode (default: SENSITIVE).
+            include_files (bool): If True, include files in results (default: True).
+            include_dirs (bool): If True, include directories in results (default: True).
 
         Yields:
             pathlib2.Path2: Paths matching the pattern.
 
         Example:
-            for f in Path2("/some/dir").glob("*.{tif,jpg}", match_case=MatchCase.IGNORE_EXTENSION):
+            for f in Path2("/some/dir").glob("*.{tif,jpg}", match_case=MatchCase.IGNORE_EXTENSION, include_files=True, include_dirs=False):
                 print(f)
         """
-        return self._custom_glob(pattern, recursive=False, match_case=match_case)
+        return self._custom_glob(pattern, recursive=False, match_case=match_case, include_files=include_files, include_dirs=include_dirs)
 
 
 
     def rglob(
         self,
         pattern: str,
-        match_case: "MatchCase" = MatchCase.SENSITIVE
+        match_case: "MatchCase" = MatchCase.SENSITIVE,
+        include_files: bool = True,
+        include_dirs: bool = True
     ) -> Generator["Path2", None, None]:
         """
-        Recursively yield files matching the given pattern, supporting multi-extension patterns and case sensitivity options.
+        Recursively yield files and/or directories matching the given pattern, supporting multi-extension patterns and case sensitivity options.
 
         Args:
             pattern (str): Glob pattern. Supports brace-enclosed, comma-separated extensions (e.g., '*.{tif,jpg}').
             match_case (MatchCase): Case sensitivity mode (default: SENSITIVE).
+            include_files (bool): If True, include files in results (default: True).
+            include_dirs (bool): If True, include directories in results (default: True).
 
         Yields:
             pathlib2.Path2: Paths matching the pattern recursively.
 
         Example:
-            for f in Path2("/some/dir").rglob("*.{tif,jpg}", match_case=MatchCase.IGNORE_EXTENSION):
+            for f in Path2("/some/dir").rglob("*.{tif,jpg}", match_case=MatchCase.IGNORE_EXTENSION, include_files=True, include_dirs=False):
                 print(f)
         """
-        return self._custom_glob(pattern, recursive=True, match_case=match_case)
+        return self._custom_glob(pattern, recursive=True, match_case=match_case, include_files=include_files, include_dirs=include_dirs)
 
-    def _custom_glob(self, pattern: str, recursive: bool, match_case: "MatchCase") -> Generator["Path2", None, None]:
+    def _custom_glob(self, pattern: str, recursive: bool, match_case: "MatchCase", include_files: bool = True, include_dirs: bool = True) -> Generator["Path2", None, None]:
         """
-        Internal helper for glob and rglob supporting multi-extension patterns and case sensitivity.
+        Internal helper for glob and rglob supporting multi-extension patterns, case sensitivity, and file/dir filtering.
         """
         dot_idx = pattern.rfind('.')
+        def _filter_type(p):
+            if p.is_file() and include_files:
+                return True
+            if p.is_dir() and include_dirs:
+                return True
+            return False
         if dot_idx == -1:
-            yield from (super().glob(pattern) if not recursive else super().rglob(pattern))
+            for p in (super().glob(pattern) if not recursive else super().rglob(pattern)):
+                if _filter_type(p):
+                    yield p
             return
         ext_part = pattern[dot_idx+1:]
         if ext_part.startswith('{') and ext_part.endswith('}'):
@@ -89,7 +105,7 @@ class Path2(pathlib.Path):
                     # Fully case-insensitive: match filename and extension both case-insensitively
                     if not fnmatch(fname.lower(), pattern_fname.lower()):
                         continue
-                    if ext.lower() in {e.lower() for e in exts}:
+                    if ext.lower() in {e.lower() for e in exts} and _filter_type(p):
                         yield p
                 elif match_case == MatchCase.IGNORE_EXTENSION:
                     # Extension-insensitive: filename part case-sensitive, extension case-insensitive
@@ -100,12 +116,14 @@ class Path2(pathlib.Path):
                         fname_match = fnmatch(fname, pattern_fname)
                     if not fname_match:
                         continue
-                    if ext.lower() in {e.lower() for e in exts}:
+                    if ext.lower() in {e.lower() for e in exts} and _filter_type(p):
                         yield p
                 else:  # SENSITIVE
                     if not fnmatch(fname, pattern_fname):
                         continue
-                    if ext in exts:
+                    if ext in exts and _filter_type(p):
                         yield p
         else:
-            yield from (super().glob(pattern) if not recursive else super().rglob(pattern))
+            for p in (super().glob(pattern) if not recursive else super().rglob(pattern)):
+                if _filter_type(p):
+                    yield p
