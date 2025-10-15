@@ -1,45 +1,119 @@
-# Proposal: Multi-Extension Globbing for pathlib2.Path2
+## Examples
+
+Here are some example use cases for multi-extension globbing:
+
+### 1. Data Science: Find all spreadsheet files
+
+```python
+# Using the demonstration subclass
+from pathlib2.pathlib2 import Path2
+for f in Path2('.').glob('*.{csv,xls,xlsx}'):
+    print(f)
+
+# Intended standard library usage
+from pathlib import Path
+for f in Path('.').glob('*.{csv,xls,xlsx}'):
+    print(f)
+```
+
+### 2. Programming: Find all C/C++ source and header files
+
+```python
+for f in Path2('.').glob('*.{c,cpp,h}'):
+    print(f)
+```
+
+### 3. System Operations: Find all archive files
+
+```python
+for f in Path2('.').glob('*.{zip,tar,gz}'):
+    print(f)
+```
+
+### 4. Case-insensitive extension matching (future enhancement)
+
+```python
+# Intended: match .jpg, .JPG, .Jpg, etc.
+for f in Path2('.').glob('*.{jpg,png}'):
+    print(f)
+# (Case-insensitive matching is not yet implemented in the prototype.)
+```
+p = Path2('.')
+
+
+
+# PEP Proposal: Seamless Multi-Extension Globbing for pathlib
 
 ## Abstract
 
-This document describes the `pathlib2` package, which provides a `Path2` class supporting multi-extension glob patterns, such as `*.{csv,xls,xlsx}`. This feature addresses a common need in data science, programming, and system scripting, and provides a more efficient and expressive API for file selection.
+This proposal aims to make multi-extension file filtering a seamless, drop-in enhancement for Python's `pathlib` glob methods. By supporting patterns like `*.{csv,xls,xlsx}` directly in `Path.glob` and `Path.rglob`, users can filter by multiple extensions with a single, expressive pattern—no extra loops, no manual filtering, and no boilerplate.
+
+**Note:** The sample code below uses a subclass (`Path2`) for demonstration purposes only. The intent of this proposal is for this feature to be integrated directly into the standard `pathlib.Path` class.
 
 ## Motivation
 
-Matching files with multiple extensions is a frequent requirement in many domains:
 
-- Data science: `*.csv`, `*.xls`, `*.xlsx`
-- Programming: `*.c`, `*.cpp`, `*.h`
-- Text processing: `*.txt`, `*.dat`
-- System operations: `*.zip`, `*.tar`, `*.gzip`
+Filtering files by multiple extensions is a common, real-world need in data science, automation, and scripting. Users expect to write:
 
-Currently, users often implement this by iterating over a list of extensions and calling glob multiple times, or by writing double-nested loops. This is inefficient, as it requires scanning the directory tree multiple times, and leads to verbose, error-prone code.
+```python
+for f in Path('.').glob('*.{csv,xls,xlsx}'):
+    ...
+```
 
-## Rationale
+and have it "just work"—matching all relevant files, regardless of extension case or platform. Today, this requires verbose code, repeated directory scans, or custom utilities.
 
-By encapsulating multi-extension globbing in the `pathlib2.Path2` API, this package provides a single, efficient directory scan and a concise, readable interface. This approach is more natural for users who are already working with modern path objects, and keeps the implementation footprint small and focused. It also aligns with patterns found in Unix shells and other scripting environments.
+## Design Philosophy
+
+- **Drop-in usability:** The enhanced globbing should work exactly like existing `pathlib` methods, with no new APIs to learn.
+- **Expressiveness:** Users can specify multiple extensions in a single pattern, just as they would in Unix shells.
+- **Efficiency:** The implementation avoids repeated directory scans and integrates with the standard globbing workflow.
+- **Cross-platform:** The feature should behave consistently on all platforms, with a clear path to case-insensitive matching if desired.
 
 ## Specification (Prototype)
 
-This package provides `pathlib2.Path2` with support for multi-extension patterns:
+The prototype in `pathlib2.Path2` demonstrates this seamless experience:
 
 ```python
 from pathlib2.pathlib2 import Path2
 
-p = Path2('.')
-for f in p.glob('*.{csv,xls,xlsx}'):
+# Demonstration subclass: in a real implementation, this would be pathlib.Path
+for f in Path2('.').glob('*.{csv,xls,xlsx}'):
     print(f)
 ```
 
-- This feature is implemented in `pathlib2.Path2`, where most users expect to find advanced path and globbing functionality.
-- While it is possible to extend globbing by modifying the `glob` or `fnmatch` modules, this approach keeps the logic close to the path object and is more discoverable for users.
-- In practice, most users who need this pattern are already using `pathlib`, and this approach keeps the implementation footprint small and focused.
-- If you need to match extensions that contain curly braces (`{}`), an escape mechanism may be required. This is not currently implemented, but could be added for edge cases.
-- A case-insensitive flag could be added in the future to support matching extensions regardless of case (e.g., matching both `.JPG` and `.jpg`). This is not currently implemented, but is a common user request and would further improve usability, especially on case-sensitive filesystems.
+No extra loops, no manual filtering—just a single, expressive pattern.
+
+**In the proposed PEP, this would be:**
+
+```python
+from pathlib import Path
+for f in Path('.').glob('*.{csv,xls,xlsx}'):
+    print(f)
+```
+
+## Alternatives Considered
+
+### 1. Implement in `fnmatch`
+
+Adding brace expansion to `fnmatch` would allow pattern matching, but would not address efficient directory traversal or integrate with `pathlib`'s object-oriented API.
+
+### 2. New `pathlib` method
+
+Adding a method like `glob_exts(['csv', 'xls', 'xlsx'])` is explicit, but less discoverable and less consistent with shell-style globbing.
+
+## Implementation Notes
+
+- The current prototype subclasses `pathlib.Path` and overrides `glob` and `rglob` to support brace-enclosed, comma-separated extensions. In a real implementation, this logic would be integrated into the standard library's `pathlib.Path`.
+- The implementation scans the directory once and filters files by extension, yielding results as `Path2` objects (or `Path` in the standard library).
+- Case-insensitive matching is not yet implemented, but is a logical extension for cross-platform robustness.
 
 ## Limitations
 
-- This is a prototype and not a production-ready package.
+- Prototype is for discussion and feedback; not production-ready.
+- Edge cases (e.g., extensions with braces) are not handled.
+- Case-insensitive matching is a future enhancement.
 
 ---
 Prototype and rationale by Chuck, October 2025.
+
+
