@@ -71,5 +71,5 @@ def test_rglob_multi_extension_pattern(temp_dir_with_files):
     subdir.mkdir()
     (subdir / 'x.tif').touch()
     (subdir / 'y.jpg').touch()
-    files = sorted([f.name for f in p.rglob('*.{tif,jpg}')])
+    files = sorted([f.name for f in p.rglob('*.{tif,jpg}') if (subdir / f.name).is_file() or (p / f.name).is_file()])
     assert 'x.tif' in files and 'y.jpg' in files

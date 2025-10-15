@@ -1,0 +1,18 @@
+[project]
+requires-python = ">=3.8, <3.14"
+[tool.pytest.ini_options]
+pythonpath = "src"
+testpaths = ["test"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "--cov=src/pathlib2 --cov-report=term-missing --cov-report=xml"
+[tool.coverage.run]
+branch = true
+source = ["src/pathlib2"]
+
+[tool.coverage.report]
+omit = ["*/__init__.py", "*/__pycache__/*"]
+
+[tool.coverage.xml]
+output = "coverage.xml"
