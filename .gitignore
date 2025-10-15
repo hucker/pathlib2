@@ -48,3 +48,4 @@ ENV/
 .mypy_cache/
 
 test/__pycache__/
+coverage.xml
