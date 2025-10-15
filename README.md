@@ -17,13 +17,11 @@ Currently, users often implement this by iterating over a list of extensions and
 
 ## Rationale
 
-By encapsulating multi-extension globbing in the `pathlib2.Path2` API, this package provides a single, efficient directory scan and a concise, readable interface. This approach is more natural for users who are already working with modern path objects, and keeps the implementation footprint small and focused. It also aligns with patterns found in Unix shells and other scripting environments.  
+By encapsulating multi-extension globbing in the `pathlib2.Path2` API, this package provides a single, efficient directory scan and a concise, readable interface. This approach is more natural for users who are already working with modern path objects, and keeps the implementation footprint small and focused. It also aligns with patterns found in Unix shells and other scripting environments.
 
 ## Specification (Prototype)
 
 This package provides `pathlib2.Path2` with support for multi-extension patterns:
-
-p = PDirPath('.')
 
 ```python
 from pathlib2.pathlib2 import Path2
@@ -37,7 +35,6 @@ for f in p.glob('*.{csv,xls,xlsx}'):
 - While it is possible to extend globbing by modifying the `glob` or `fnmatch` modules, this approach keeps the logic close to the path object and is more discoverable for users.
 - In practice, most users who need this pattern are already using `pathlib`, and this approach keeps the implementation footprint small and focused.
 - If you need to match extensions that contain curly braces (`{}`), an escape mechanism may be required. This is not currently implemented, but could be added for edge cases.
-
 - A case-insensitive flag could be added in the future to support matching extensions regardless of case (e.g., matching both `.JPG` and `.jpg`). This is not currently implemented, but is a common user request and would further improve usability, especially on case-sensitive filesystems.
 
 ## Limitations

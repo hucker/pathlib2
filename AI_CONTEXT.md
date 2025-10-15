@@ -1,3 +1,4 @@
+
 # AI CONTEXT: Coding Style and Requirements
 
 ## Coding Standards for This Project
@@ -50,7 +51,7 @@ def example_function(arg1: int, arg2: str | None = None) -> bool:
 - Always run mypi before checkin
 - When generating markdown # headings should have a line before and after
 - When generating - list the - should be the first character on the line no spaces.
-- When generating any markdown there should not be more than  one empty line in a row
+- When generating any markdown there should not be more than one empty line in a row
 - When generating markdown the first line must not be blank
 - When generating markdown the last line should be a blank
 
@@ -64,3 +65,4 @@ def example_function(arg1: int, arg2: str | None = None) -> bool:
 
 ---
 This file is intended for use as AI prompt context to enforce coding standards and style for this project.
+
